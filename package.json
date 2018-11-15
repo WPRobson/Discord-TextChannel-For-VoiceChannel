@@ -1,0 +1,11 @@
+{
+  "name": "testbot",
+  "version": "1.0.0",
+  "description": "Gives permissions for text channels to go with void ones",
+  "main": "bot.js",
+  "author": "Will Robson",
+  "dependencies": {
+    "discord.io": "github:woor/discord.io#gateway_v6",
+    "winston": "^3.1.0"
+  }
+}
