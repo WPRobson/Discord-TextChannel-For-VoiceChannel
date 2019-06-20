@@ -6,7 +6,7 @@ bot.login(auth.token);
 
 bot.on('ready', function (evt) {
     console.log("Bot is ready");
-    bot.user.setGame("Beep Boop. I am a bot.")
+    bot.user.setActivity("Beep Boop. I am a bot.")
 });
 
 bot.on('voiceStateUpdate', (oldMember, newMember) => {
@@ -27,6 +27,13 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
         if (oldUserChannel === undefined && newUserChannel !== undefined) {
 
             console.log(`${newMember.user.username} has joined channel ${newUserChannel.name}`)
+
+            if(newUserChannel.name === "General" || newUserChannel.name === "general")
+            {
+            console.log("It was general chat");
+            return;
+            }
+
             let textChannel = newMember.guild.channels
                 .find(channel => (channel.name === filterChannelNameSpaces(newUserChannel.name) && channel.type === "text"));
             if (textChannel.name !== "general") {
@@ -44,6 +51,13 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
         else if (newUserChannel === undefined) {
 
             console.log(`${oldMember.user.username} has left channel ${oldUserChannel.name}`)
+
+            if(oldUserChannel.name === "General" || oldUserChannel.name === "general")
+            {
+            console.log("It was general chat");
+            return;
+            }
+
             let textChannel = oldMember.guild.channels
                 .find(channel => (channel.name === filterChannelNameSpaces(oldUserChannel.name) && channel.type === "text"));
             if (textChannel.name !== "general") {
