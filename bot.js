@@ -1,45 +1,105 @@
-var Discord = require('discord.io');
+var Discord = require('discord.js');
 var logger = require('winston');
 var auth = require('./auth.json');
-// Configure logger settings
 
-//logger.remove(logger.transports.Console);
-//logger.add(new logger.transports.Console, {
-  //  colorize: true
-//});
-//logger.level = 'debug';
-// Initialize Discord Bot
-var bot = new Discord.Client({
-   token: auth.token,
-   autorun: true
-});
+var bot = new Discord.Client();
+bot.login(auth.token);
 
-console.log("bot created")
-console.log(bot.token)
-console.log(bot.autorun)
 
 bot.on('ready', function (evt) {
-    console.log('Connected');
-    console.log('Logged in as: ');
-    console.log(bot.username + ' - (' + bot.id + ')');
+    console.log("Bot is ready");
 });
-bot.on('message', function (user, userID, channelID, message, evt) {
-    // Our bot needs to know if it will execute a command
-    // It will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
-        var args = message.substring(1).split(' ');
-        var cmd = args[0];
-       
-        args = args.splice(1);
-        switch(cmd) {
-            // !ping
-            case 'ping':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Pong!'
+
+bot.on('voiceStateUpdate', (oldMember, newMember) => {
+    
+    let newUserChannel = undefined;
+    let oldUserChannel = undefined;
+
+    if(newMember !== undefined)
+    {
+        newUserChannel = newMember.voiceChannel
+    }
+
+    if(oldMember !== undefined)
+    {
+        oldUserChannel = oldMember.voiceChannel
+    }
+    
+    if(oldUserChannel === undefined && newUserChannel !== undefined) {
+  
+        console.log(`${newMember.user.username} has joined channel ${newUserChannel.name}`)
+        let textChannel = newMember.guild.channels
+        .find(channel => (channel.name === newUserChannel.name && channel.type === "text"));
+        if(textChannel.name !== "general")
+        {
+            textChannel.overwritePermissions(newMember.user, 
+                {
+                    READ_MESSAGES: true,
+                    VIEW_CHANNEL: true,
+                    SEND_MESSAGES:true,
+                    MANAGE_MESSAGES: true
                 });
-            break;
-            // Just add any case commands if you want to..
-         }
-     }
+        }
+       
+
+    } 
+
+    else if(newUserChannel === undefined){
+  
+        console.log(`${oldMember.user.username} has left channel ${oldUserChannel.name}`)
+        let textChannel = oldMember.guild.channels
+        .find(channel => (channel.name === oldUserChannel.name && channel.type === "text"));
+        if(textChannel.name !== "general")
+        {
+            textChannel.overwritePermissions(oldMember.user, 
+                {
+                    READ_MESSAGES: false,
+                    VIEW_CHANNEL: false,
+                    SEND_MESSAGES:false,
+                    MANAGE_MESSAGES: false
+                });
+        }
+    }
+  })
+
+bot.on('channelCreate', (channel) =>{
+
+    let guild = channel.guild;
+
+    if(channel.type === "voice" && guild !== undefined)
+    {
+        guild.createChannel(channel.name, 
+        {type: 'text',
+            permissionOverwrites: [{id : guild.id, deny:[
+                'READ_MESSAGES',
+                'VIEW_CHANNEL',
+                'SEND_MESSAGES',
+                'MANAGE_MESSAGES',
+                'CREATE_INSTANT_INVITE',
+                'READ_MESSAGE_HISTORY']}]
+        } 
+        ).then(console.log("New channel created"));
+    }
+});
+
+bot.on('channelUpdate', (oldChannel, newChannel) => {
+
+    if(oldChannel.type === "voice" && oldChannel.name !== "general")
+    {
+        oldChannel.guild.channels
+        .find(channel => (channel.name === oldChannel.name && channel.type === "text"))
+        .setName(newChannel.name)
+        .then(console.log("Channel updated to new name"));
+    }
+});
+
+bot.on('channelDelete', (channel) => 
+{
+    if(channel.type === "voice" && channel.name !== "general")
+    {
+        channel.guild.channels
+        .find(c => (c.name === channel.name && c.type === "text"))
+        .delete()
+        .then("channel deleted");
+    }
 });

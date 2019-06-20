@@ -5,7 +5,9 @@
   "main": "bot.js",
   "author": "Will Robson",
   "dependencies": {
+    "bufferutil": "^4.0.0",
     "discord.io": "github:woor/discord.io#gateway_v6",
-    "winston": "^3.1.0"
+    "discord.js": "^11.5.1",
+    "winston": "^3.2.1"
   }
 }
