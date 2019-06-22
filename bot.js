@@ -35,7 +35,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
             }
 
             let textChannel = newMember.guild.channels
-                .find(channel => (channel.name === filterChannelNameSpaces(newUserChannel.name) && channel.type === "text"));
+                .find(channel => (channel.name === SanitizeChannelName(newUserChannel.name) && channel.type === "text"));
             if (textChannel.name !== "general") {
                 console.log(`Granting permissions to view channel ${newUserChannel} to ${newMember.user.username}`);
                 textChannel.overwritePermissions(newMember.user,
@@ -59,7 +59,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
             }
 
             let textChannel = oldMember.guild.channels
-                .find(channel => (channel.name === filterChannelNameSpaces(oldUserChannel.name) && channel.type === "text"));
+                .find(channel => (channel.name === SanitizeChannelName(oldUserChannel.name) && channel.type === "text"));
             if (textChannel.name !== "general") {
                 console.log(`Revoking permissions to view channel ${oldUserChannel.name} from ${oldMember.user.username}`);
                 textChannel.replacePermissionOverwrites({
@@ -132,7 +132,7 @@ bot.on('channelDelete', (channel) => {
     try {
         if (channel.type === "voice" && channel.name !== "general") {
             channel.guild.channels
-                .find(c => (c.name === filterChannelNameSpaces(channel.name) && c.type === "text"))
+                .find(c => (c.name === SanitizeChannelName(channel.name) && c.type === "text"))
                 .delete()
                 .then("channel deleted");
         }
@@ -140,6 +140,8 @@ bot.on('channelDelete', (channel) => {
     catch (error) { console.log(error); }
 });
 
-function filterChannelNameSpaces(channelName) {
-    return channelName.split(" ").join("-");
+function SanitizeChannelName(channelName) {
+    let parsedName = channelName.split(" ").join("-").toLowerCase();
+    parsedName =  parsedName.replace(/[&\/\\#,+()$~%.'":*?<>{}`|?+\[\]=*/]/g, '');
+    return parsedName;
 }
