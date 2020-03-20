@@ -170,6 +170,7 @@ function createTemporaryChannel(channel, newUserChannel, newMember) {
         });
     
 }
+}
 
 function SanitizeChannelName(channelName) {
     let parsedName = channelName.split(" ").join("-").toLowerCase();
