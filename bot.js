@@ -30,22 +30,19 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
 
             if(newUserChannel.name === "General" || newUserChannel.name === "general")
             {
-            console.log("It was general chat");
-            return;
+                console.log("It was general chat");
+                return;
             }
 
             let textChannel = newMember.guild.channels
-                .find(channel => (channel.name === SanitizeChannelName(newUserChannel.name) && channel.type === "text"));
-            if (textChannel.name !== "general") {
-                console.log(`Granting permissions to view channel ${newUserChannel} to ${newMember.user.username}`);
-                textChannel.overwritePermissions(newMember.user,
-                    {
-                        READ_MESSAGES: true,
-                        VIEW_CHANNEL: true,
-                        SEND_MESSAGES: true,
-                        MANAGE_MESSAGES: true
-                    });
+            .find(channel => (channel.name === SanitizeChannelName(newUserChannel.name) && channel.type === "text"));
+
+            if(textChannel == null)
+            {
+                createTemporaryChannel(textChannel, newUserChannel, newMember);
             }
+
+            
         }
 
         else if (newUserChannel === undefined) {
@@ -82,34 +79,34 @@ bot.on('voiceStateUpdate', (oldMember, newMember) => {
 });
 
 
-bot.on('channelCreate', (channel) => {
-    try {
-        console.log(`Channel ${channel.name} has been created`)
+// bot.on('channelCreate', (channel) => {
+//     try {
+//         console.log(`Channel ${channel.name} has been created`)
 
-        let guild = channel.guild;
+//         let guild = channel.guild;
 
-        if (channel.type === "voice" && guild !== undefined) {
-            console.log("New channel was type voice, Creating new text channel");
-            guild.createChannel(channel.name,
-                {
-                    type: 'text',
-                    permissionOverwrites: [{
-                        id: guild.id, deny: [
-                            'READ_MESSAGES',
-                            'VIEW_CHANNEL',
-                            'SEND_MESSAGES',
-                            'MANAGE_MESSAGES',
-                            'SEND_TTS_MESSAGES',
-                            'READ_MESSAGE_HISTORY',
-                            'MENTION_EVERYONE'
-                        ]
-                    }]
-                }
-            ).then(console.log("New channel created"));
-        }
-    }
-    catch (error) { console.log(error); }
-});
+//         if (channel.type === "voice" && guild !== undefined) {
+//             console.log("New channel was type voice, Creating new text channel");
+//             guild.createChannel(channel.name,
+//                 {
+//                     type: 'text',
+//                     permissionOverwrites: [{
+//                         id: guild.id, deny: [
+//                             'READ_MESSAGES',
+//                             'VIEW_CHANNEL',
+//                             'SEND_MESSAGES',
+//                             'MANAGE_MESSAGES',
+//                             'SEND_TTS_MESSAGES',
+//                             'READ_MESSAGE_HISTORY',
+//                             'MENTION_EVERYONE'
+//                         ]
+//                     }]
+//                 }
+//             ).then(console.log("New channel created"));
+//         }
+//     }
+//     catch (error) { console.log(error); }
+// });
 
 bot.on('channelUpdate', (oldChannel, newChannel) => {
     try {
@@ -139,6 +136,40 @@ bot.on('channelDelete', (channel) => {
     }
     catch (error) { console.log(error); }
 });
+
+function createTemporaryChannel(channel, newUserChannel, newMember) {
+    console.log("Temporary channel matching voice not found, creating temporary channel");
+    if (channel.name !== "general") {
+
+        console.log("New channel was type voice, Creating new text channel");
+        guild.createChannel(newUserChannel.name,
+            {
+                type: 'text',
+                permissionOverwrites: [{
+                    id: guild.id, deny: [
+                        'READ_MESSAGES',
+                        'VIEW_CHANNEL',
+                        'SEND_MESSAGES',
+                        'MANAGE_MESSAGES',
+                        'SEND_TTS_MESSAGES',
+                        'READ_MESSAGE_HISTORY',
+                        'MENTION_EVERYONE'
+                    ]
+                }]
+            }
+        ).then(console.log("New channel created"));
+
+
+        console.log(`Granting permissions to view channel ${newUserChannel} to ${newMember.user.username}`);
+        
+        channel.overwritePermissions(newMember.user, {
+            READ_MESSAGES: true,
+            VIEW_CHANNEL: true,
+            SEND_MESSAGES: true,
+            MANAGE_MESSAGES: true
+        });
+    
+}
 
 function SanitizeChannelName(channelName) {
     let parsedName = channelName.split(" ").join("-").toLowerCase();
